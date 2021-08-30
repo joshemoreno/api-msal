@@ -4,7 +4,7 @@ const express = require("express");
 const enviroment = require('./config/enviroment');
 
 const SERVER_PORT = `${enviroment.port}`;
-const REDIRECT_URI = `${enviroment.host}:${enviroment.port}/redirect`;
+const REDIRECT_URI = `${enviroment.host}:4200/logOn`;
 
 
 const config = {
@@ -12,16 +12,17 @@ const config = {
         clientId: `${enviroment.idAppAzure}`,
         authority: `${enviroment.authority}`,
         clientSecret: `${enviroment.secret}`
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    }
+    }
+//     ,
+//     system: {
+//         loggerOptions: {
+//             loggerCallback(loglevel, message, containsPii) {
+//                 console.log(message);
+//             },
+//             piiLoggingEnabled: false,
+//             logLevel: msal.LogLevel.Verbose,
+//         }
+//     }
 };
 
 const pca = new msal.ConfidentialClientApplication(config);
@@ -37,20 +38,22 @@ app.get('/', (req, res) => {
 
     // get url to sign user in and consent to scopes needed for application
     pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-        res.redirect(response);
+        res.send({statuscode: 200, url: response});
+        // console.log(response);
+        // res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));
 });
 
-app.get('/redirect', (req, res) => {
+app.get('/logOn', (req, res) => {
     const tokenRequest = {
         code: req.query.code,
         scopes: ["user.read"],
         redirectUri: REDIRECT_URI,
     };
-
+    // res.send('llego');
     pca.acquireTokenByCode(tokenRequest).then((response) => {
-        console.log("\nResponse: \n:", response);
-        res.sendStatus(200);
+        // console.log("\nResponse: \n:", response);
+        res.send({statuscode: 200, data: response});
     }).catch((error) => {
         console.log(error);
         res.status(500).send(error);
